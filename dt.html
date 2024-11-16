@@ -1,0 +1,44 @@
+Model the following information as a document database. A customer can take different policies and get the benefit. There are different types of policies provided by various companies.
+Assume appropriate attributes and collections as per the query requirements.
+Insert at least 5 documents in each collection.
+Answer the following queries:
+a. List the details of customers who have taken "Komal Jeevan" Policy.
+b. Display average premium amount.
+c. Increase the premium amount by 5% for policy type="Monthly".
+d. Count the number of customers who have taken the policy type "half yearly".
+Program:
+
+  
+ 
+# Start MongoDB   
+mongosh
+
+# Create and select the database
+use InsuranceDatabase
+
+# Create and insert documents into the 'customers' collection (5 records)
+db.customers.insertMany([
+  { _id: 1, name: "Mr. Patil", policies: [{ policy_name: "Komal Jeevan", policy_type: "Yearly", premium: 5000 }] },
+  { _id: 2, name: "Mr. Shinde", policies: [{ policy_name: "Life Shield", policy_type: "Monthly", premium: 2000 }] },
+  { _id: 3, name: "Mr. Nirmal", policies: [{ policy_name: "Komal Jeevan", policy_type: "Half Yearly", premium: 3000 }] },
+  { _id: 4, name: "Mr. Mhaske", policies: [{ policy_name: "Komal Jeevan", policy_type: "Monthly", premium: 1500 }] },
+  { _id: 5, name: "Mr. Joshi", policies: [{ policy_name: "Term Guard", policy_type: "Yearly", premium: 6000 }] }
+])
+
+# a. List the details of customers who have taken "Komal Jeevan" Policy
+db.customers.find({ "policies.policy_name": "Komal Jeevan" }, { name: 1, policies: 1, _id: 0 })
+
+# b. Display average premium amount
+db.customers.aggregate([
+  { $unwind: "$policies" },
+  { $group: { _id: null, avgPremium: { $avg: "$policies.premium" } } }
+])
+
+# c. Increase the premium amount by 5% for policy type="Monthly"
+db.customers.updateMany(
+  { "policies.policy_type": "Monthly" },
+  { $mul: { "policies.$.premium": 1.05 } }
+)
+
+# d. Count the number of customers who have taken policy type "Half Yearly"
+db.customers.find({ "policies.policy_type": "Half Yearly" }).count()
